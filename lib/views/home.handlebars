@@ -1,49 +1,41 @@
 <br>
 <h1>Contract Dashboard</h1>
 <br>
+<div>
+  <h3> Proxy Contracts </h3>
+  <button onclick="deployNewProxy()" class="btn btn-primary"> Deploy Proxy Contract </button>
+  <button onclick="getProxyOwner()" class="btn btn-success"> Proxy Owner </button>
+  <button onclick="getCurrentContract()" class="btn btn-success"> Contract Version </button>
+  <button onclick="upgradeContract()"class="btn btn-primary"> Update Contract </button>
+  <button onclick="transferProxyOwner()"class="btn btn-primary"> Transfer Proxy Owner </button>
+<div>
 <br>
+<div>
+  <h3> Generic Contracts </h3>
+  <button onclick="deployNewContract()" class="btn btn-primary"> Deploy a Contract </button>
+<div>
+<br>
+<div>
+  <h3> Account </h3>
+  <button onclick="getBalance()" class="btn btn-success"> Get Balance </button>
+  <button onclick="getTransaction()" class="btn btn-primary"> TX Lookup </button>
+<div>
+<br>
+<hr>
+<br>
+<div>
+  <h5> Input </h5>
+  <span id="inputs"></span>
+</div>
+<br>
+<div>
+  <h5> Output </h5>
+  <span id="output"></span>
+  <br><br>
+  <button onclick="clearOutput()" class="btn btn-sm btn-danger">Clear</button>
+</div>
 
-  <div>
-    <h3> Proxy Contracts </h3>
-    <button onclick="deployNewProxy()" class="btn btn-primary"> Deploy Proxy Contract </button>
-    <button onclick="getProxyOwner()" class="btn btn-success"> Proxy Owner </button>
-    <button onclick="getCurrentContract()" class="btn btn-success"> Contract Version </button>
-    <button onclick="upgradeContract()"class="btn btn-primary"> Update Contract </button>
-    <button onclick="transferProxyOwner()"class="btn btn-primary"> Transfer Proxy Owner </button>
-  <div>
-  <br>
-  <div>
-    <h3> Generic Contracts </h3>
-    <button onclick="deployNewContract()" class="btn btn-primary"> Deploy a Contract </button>
-  <div>
-
-  <div>
-    <h3> Account </h3>
-    <button onclick="getBalance()" class="btn btn-primary"> Get Balance </button>
-    <button onclick="getTransaction()" class="btn btn-primary"> TX Lookup </button>
-
-  <div>
-
-  <br>
-  <hr>
-  <br>
-
-  <div>
-    <h5> Input </h5>
-    <span id="inputs"></span>
-  </div>
-  <br>
-
-  <div>
-    <h5> Output </h5>
-    <span id="output"></span>
-    <br><br>
-    <button onclick="clearOutput()" class="btn btn-sm btn-danger">Clear</button>
-  </div>
 <script>
-
-
-
 const clearOutput = () => {
   document.getElementById('inputs').innerHTML = "null"
   document.getElementById('output').innerHTML = ""
@@ -53,7 +45,7 @@ const getBalance = () => {
   clearOutput()
   axios.get('http://localhost:5077/api/balance')
     .then(response => {
-      const data = response.data
+      const data = response.data.data
       document.getElementById('output').innerHTML = data
     })
 }
@@ -64,17 +56,18 @@ const getTransaction = () => {
     if(data.length >= 64 && data.length <= 66) {
       axios.get(`http://localhost:5077/api/transaction/${data}`)
         .then(response => {
-          const data = response.data
+          const data = response.data.data
           document.getElementById('output').innerHTML = `<pre>${JSON.stringify(data, undefined, 2)}</pre>`
         })
         .catch(error => {
           document.getElementById('output').innerHTML = error
-
         })
+    } else {
+      document.getElementById('output').innerHTML = "Invalid TX hash length"
     }
   } else {
     clearOutput()
-    document.getElementById('inputs').innerHTML = 'TX Hash: <input id="transactionHash" type="text"/><br><button onclick="getTransaction()"class="btn btn-primary">Submit</button>'
+    document.getElementById('inputs').innerHTML = 'TX Hash: <input id="transactionHash" type="text"/><br><br><button onclick="getTransaction()"class="btn btn-primary">Submit</button>'
   }
 }
 
@@ -87,14 +80,13 @@ const deployNewContract = () => {
         abi,
         bytecode
       })
-        .then(response => {
-          const data = response.data
-          document.getElementById('output').innerHTML = data
-        })
-        .catch(error => {
-          document.getElementById('output').innerHTML = error
-
-        })
+      .then(response => {
+        const data = response.data.data
+        document.getElementById('output').innerHTML = data
+      })
+      .catch(error => {
+        document.getElementById('output').innerHTML = error
+      })
     }
   } else {
     clearOutput()
@@ -108,17 +100,22 @@ const deployNewProxy = () => {
     if(data.length >= 40 && data.length <= 42) {
       axios.get(`http://localhost:5077/api/deploy/to/${data}`)
         .then(response => {
-          const data = response.data
-          document.getElementById('output').innerHTML = `<pre>${JSON.stringify(data, undefined, 2)}</pre>`
+          const data = response.data.data
+          if(response.data.success) {
+            document.getElementById('output').innerHTML = `<pre>${JSON.stringify(data, undefined, 2)}</pre>`
+          } else {
+            document.getElementById('output').innerHTML = data
+          }
         })
         .catch(error => {
           document.getElementById('output').innerHTML = error
-
         })
+    } else {
+      document.getElementById('output').innerHTML = "Invalid address length"
     }
   } else {
     clearOutput()
-    document.getElementById('inputs').innerHTML = 'Contract Address to Proxy: <input id="contractAddress" type="text"/><br><button onclick="deployNewProxy()"class="btn btn-primary">Submit</button>'
+    document.getElementById('inputs').innerHTML = 'Contract Address to Proxy: <input id="contractAddress" type="text"/><br><br><button onclick="deployNewProxy()"class="btn btn-primary">Submit</button>'
   }
 }
 
@@ -128,17 +125,18 @@ const transferProxyOwner = () => {
     if(data.length >= 40 && data.length <= 42) {
       axios.get(`http://localhost:5077/api/upgrade/to/${data}`)
         .then(response => {
-          const data = response.data
+          const data = response.data.data
           document.getElementById('output').innerHTML = data
         })
         .catch(error => {
           document.getElementById('output').innerHTML = error
-
         })
+    } else {
+      document.getElementById('output').innerHTML = "Invalid address length"
     }
   } else {
     clearOutput()
-    document.getElementById('inputs').innerHTML = 'Transfer ownership to new address: <input id="transferAddress" type="text"/><br><button onclick="transferProxyOwner()"class="btn btn-primary">Submit</button>'
+    document.getElementById('inputs').innerHTML = 'Transfer ownership to new address: <input id="transferAddress" type="text"/><br><br><button onclick="transferProxyOwner()"class="btn btn-primary">Submit</button>'
   }
 }
 
@@ -148,25 +146,27 @@ const upgradeContract = () => {
     if(data.length >= 40 && data.length <= 42) {
       axios.get(`http://localhost:5077/api/upgrade/to/${data}`)
         .then(response => {
-          const data = response.data
+          const data = response.data.data
           document.getElementById('output').innerHTML = data
         })
         .catch(error => {
           document.getElementById('output').innerHTML = error
-
         })
     }
   } else {
     clearOutput()
-    document.getElementById('inputs').innerHTML = 'Upgrade contract to new address: <input id="upgradeAddress" type="text"/><br><button onclick="upgradeContract()"class="btn btn-primary">Submit</button>'
+    document.getElementById('inputs').innerHTML = 'Upgrade contract to new address: <input id="upgradeAddress" type="text"/><br><br><button onclick="upgradeContract()"class="btn btn-primary">Submit</button>'
   }
 }
 const getProxyOwner = () => {
   clearOutput()
   axios.get('http://localhost:5077/api/proxyOwner')
     .then(response => {
-      const data = response.data
+      const data = response.data.data
       document.getElementById('output').innerHTML = data
+    })
+    .catch(error => {
+      document.getElementById('output').innerHTML = error
     })
 }
 
@@ -174,8 +174,11 @@ const getCurrentContract = () => {
   clearOutput()
   axios.get('http://localhost:5077/api/contract')
     .then(response => {
-      const data = response.data
+      const data = response.data.data
       document.getElementById('output').innerHTML = data
+    })
+    .catch(error => {
+      document.getElementById('output').innerHTML = error
     })
 }
 
