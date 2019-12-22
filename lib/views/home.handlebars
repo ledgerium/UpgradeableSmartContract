@@ -123,7 +123,7 @@ const transferProxyOwner = () => {
   if(document.getElementById('transferAddress')) {
     const data = document.getElementById('transferAddress').value
     if(data.length >= 40 && data.length <= 42) {
-      axios.get(`http://localhost:5077/api/upgrade/to/${data}`)
+      axios.get(`http://localhost:5077/api/ownership/to/${data}`)
         .then(response => {
           const data = response.data.data
           document.getElementById('output').innerHTML = data
